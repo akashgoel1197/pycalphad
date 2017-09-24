@@ -44,7 +44,7 @@ def _map_coord_to_variable(coord):
         return coord
 
 
-def eqplot(eq, ax=None, x=None, y=None, z=None, **kwargs):
+def eqplot(eq, ax=None, x=None, y=None, z=None, is_tielines = True, **kwargs):
     """
     Plot the result of an equilibrium calculation.
 
@@ -135,15 +135,17 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, **kwargs):
             two_phase_y = np.array([two_phase_y, two_phase_y]).swapaxes(0, 1)
 
         # construct tielines
-        tielines = np.array([np.concatenate((two_phase_x[..., 0][..., np.newaxis], two_phase_y[..., 0][..., np.newaxis]), axis=-1),
+        if(is_tielines == True):
+            tielines = np.array([np.concatenate((two_phase_x[..., 0][..., np.newaxis], two_phase_y[..., 0][..., np.newaxis]), axis=-1),
                      np.concatenate((two_phase_x[..., 1][..., np.newaxis], two_phase_y[..., 1][..., np.newaxis]), axis=-1)])
-        tielines = np.rollaxis(tielines,1)
-        lc = mc.LineCollection(tielines, zorder=1, colors=[0,1,0,1], linewidths=[0.5, 0.5])
+            tielines = np.rollaxis(tielines,1)
+            lc = mc.LineCollection(tielines, zorder=1, colors=[0,1,0,1], linewidths=[0.5, 0.5])
         # plot two phase points and tielines
         two_phase_plotcolors = np.array(list(map(lambda x: [colorlist[x[0]], colorlist[x[1]]], found_two_phase)), dtype='U') # from pycalphad
         ax.scatter(two_phase_x[..., 0], two_phase_y[..., 0], s=3, c=two_phase_plotcolors[:,0], edgecolors='None', zorder=2, **kwargs)
         ax.scatter(two_phase_x[..., 1], two_phase_y[..., 1], s=3, c=two_phase_plotcolors[:,1], edgecolors='None', zorder=2, **kwargs)
-        ax.add_collection(lc)
+        if(is_tielines==True):
+            ax.add_collection(lc)
 
     # If we found three phase regions:
     if three_phase_idx[0].size > 0:
@@ -152,17 +154,19 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, **kwargs):
         three_phase_x = eq.X.sel(component=x.species).values[three_phase_idx][..., :3]
         three_phase_y = eq.X.sel(component=y.species).values[three_phase_idx][..., :3]
         # three phase tielines
-        three_phase_tielines = np.array([np.concatenate((three_phase_x[..., 0][..., np.newaxis], three_phase_y[..., 0][..., np.newaxis]), axis=-1),
+        if(is_tielines==True):
+            three_phase_tielines = np.array([np.concatenate((three_phase_x[..., 0][..., np.newaxis], three_phase_y[..., 0][..., np.newaxis]), axis=-1),
                                      np.concatenate((three_phase_x[..., 1][..., np.newaxis], three_phase_y[..., 1][..., np.newaxis]), axis=-1),
                                      np.concatenate((three_phase_x[..., 2][..., np.newaxis], three_phase_y[..., 2][..., np.newaxis]), axis=-1)])
-        three_phase_tielines = np.rollaxis(three_phase_tielines,1)
-        three_lc = mc.LineCollection(three_phase_tielines, zorder=1, colors=[1,0,0,1], linewidths=[0.5, 0.5])
+            three_phase_tielines = np.rollaxis(three_phase_tielines,1)
+            three_lc = mc.LineCollection(three_phase_tielines, zorder=1, colors=[1,0,0,1], linewidths=[0.5, 0.5])
         # plot three phase points and tielines
         three_phase_plotcolors = np.array(list(map(lambda x: [colorlist[x[0]], colorlist[x[1]], colorlist[x[2]]], found_three_phase)), dtype='U') # from pycalphad
         ax.scatter(three_phase_x[..., 0], three_phase_y[..., 0], s=3, c=three_phase_plotcolors[:, 0], edgecolors='None', zorder=2, **kwargs)
         ax.scatter(three_phase_x[..., 1], three_phase_y[..., 1], s=3, c=three_phase_plotcolors[:, 1], edgecolors='None', zorder=2, **kwargs)
         ax.scatter(three_phase_x[..., 2], three_phase_y[..., 2], s=3, c=three_phase_plotcolors[:, 2], edgecolors='None', zorder=2, **kwargs)
-        ax.add_collection(three_lc)
+        if(is_tielines==True):
+            ax.add_collection(three_lc)
 
     # position the phase legend and configure plot
     box = ax.get_position()
